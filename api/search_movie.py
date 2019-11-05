@@ -3,18 +3,27 @@ from flask import request
 
 from external_api.themoviedb import TheMovieDBAPI
 
-movie_search_api = Namespace('search_movie', description='Searching Movie Titles')
+# namespace for these endpoints
+movie_search_api = Namespace("search_movie", description="Searching Movie Titles")
+
+# results model defined by themoviedbapi
+api_results_model = movie_search_api.model("themoviedb Results", {
+    "page": fields.String(),
+    "results": fields.List(fields.Raw()),
+    "total_results": fields.Integer(),
+    "total_pages": fields.Integer()
+})
 
 @movie_search_api.route("/", endpoint="search_movie")
 class SearchMovie(Resource):
-    # search movie endpoint
     @movie_search_api.doc(params={
-        "query_text": fields.String(description="Text to search movie title with", required=True),
-        "page_num": fields.Integer(description="The page number to be requested from the API.", required=False),
-        "include_adult": fields.Boolean(description="Whether to include mature rated titles", required=False),
-        "year": fields.Integer(description="Year to search titles", required=False),
-        "primary_release_year": fields.Integer(description="Primary release year to search titles", required=False),
+        "query_text": "Text to search movie title with",
+        "page_num": "The page number to be requested from the API.",
+        "include_adult": "Whether to include mature rated titles",
+        "year": "Year to search titles",
+        "primary_release_year": "Primary release year to search titles",
     })
+    @movie_search_api.marshal_with(api_results_model)
     def get(self):
         if "query_text" not in request.args:
             return "Missing required parameter: query_text", 400
